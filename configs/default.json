@@ -1,0 +1,76 @@
+{
+    "demographics": ["age", "gender", "ethnicity"],
+    "tables": {
+        "diagnosis": [
+            "sepsis", 
+            "diabetes",
+            "respiratory failure",
+            "renal failure",
+            "hypertension",
+            "pneumonia"
+        ],
+        "treatment": [
+            "vancomycin",
+            "piperacillin",
+            "cefepime",
+            "meropenem",
+            "insulin",
+            "ventilation",
+            "dialysis",
+            "diuretic",
+            "hypertension|ACE inhibitor",
+            "hypertension|angiotensin II receptor blocker (ARB)",
+            "azithromycin",
+            "amoxicillin"
+        ],
+        "vitalAperiodic": {
+            "noninvasivemean": "mean"
+        },
+        "vitalPeriodic": {
+            "sao2": "mean",
+            "heartrate": "mean",
+            "respiration": "mean"
+        }
+    },
+
+    "causal_map": {
+        "diabetes": ["insulin", "hypertension", "pneumonia", "renal failure", "mortality"],
+        "insulin": ["hypertension", "pneumonia", "renal failure", "mortality"],
+
+        "hypertension": [
+            "hypertension|ACE inhibitor",
+            "hypertension|angiotensin II receptor blocker (ARB)",
+            "renal failure", 
+            "respiratory failure",
+            "mortality"
+        ],
+        "hypertension|ACE inhibitor": ["renal failure", "respiratory failure", "mortality"],
+        "hypertension|angiotensin II receptor blocker (ARB)": ["renal failure", "respiratory failure", "mortality"],
+
+        "pneumonia": [
+            "amoxicillin",
+            "sepsis",
+            "respiratory failure",
+            "renal failure",
+            "mortality"
+        ],
+        "amoxicillin": ["sepsis", "respiratory failure", "renal failure", "mortality"],
+        
+        "sepsis": [
+            "vancomycin",
+            "piperacillin",
+            "respiratory failure",
+            "renal failure",
+            "mortality"
+        ],
+        "vancomycin": ["respiratory failure", "renal failure", "mortality"],
+        "piperacillin": ["respiratory failure", "renal failure", "mortality"],
+        
+        "respiratory failure": ["ventilation", "renal failure", "mortality"],
+        "ventilation": ["mortality"],
+
+        "renal failure": ["dialysis", "respiratory failure", "mortality"],
+        "dialysis": ["mortality"]
+    }
+        
+}
