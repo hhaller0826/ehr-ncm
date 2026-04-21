@@ -1,25 +1,26 @@
 import torch as T
 import torch.optim as optim
 from torch.utils.data._utils.collate import default_collate
+from tqdm import tqdm
 
+from src.helpers import DEVICE
 from src.metric.divergence import *
 
-def train_ncm(model, data, optimizer=None, hyperparameters={}):
-    device = hyperparameters.get('device', 'cpu')
+def train_ncm(model, dataloader, hyperparameters={}):
+    device = hyperparameters.get('device', DEVICE)
     lr = hyperparameters.get('learning-rate', 1e-3)
     num_epochs = hyperparameters.get('n-epochs', 10)
-
-    dataloader = data.train_dataloader
 
     model.to(device)
     model.train()
     ordered_v = model.v
 
-    if optimizer == None: optimizer = optim.Adam(model.parameters(), lr=lr)
+    optimizer = hyperparameters.get("optimizer", optim.Adam(model.parameters(), lr=lr))
 
     for epoch in range(1, num_epochs+1):
         epoch_loss = 0.0
-        for batch in dataloader:
+        pbar = tqdm(dataloader, desc=f"Train epoch {epoch}", leave=True)
+        for batch in pbar:
             # if DataLoader gives you back a list of samples, collate it
             if isinstance(batch, list):
                 batch = default_collate(batch)
@@ -42,19 +43,21 @@ def train_ncm(model, data, optimizer=None, hyperparameters={}):
             optimizer.step()
 
             epoch_loss += loss.item()
+            pbar.set_postfix(loss=loss.item()/len(batch))
 
         avg_loss = epoch_loss / len(dataloader)
         print(f"Epoch {epoch}/{num_epochs}, Loss: {avg_loss:.4f}")
 
     return model
 
-def compute_accuracy(model, dataloader, device, target_var):
+def compute_accuracy(model, dataloader, target_var, device=DEVICE, label=""):
     model.eval()
     total_loss = 0
     total_e = 0
     total_js = 0
     with T.no_grad():
-        for batch in dataloader:
+        pbar = tqdm(dataloader, desc=f"Computing {label} accuracy")
+        for batch in pbar:
             batch = {k: v.to(device) for k, v in batch.items()}
             batch_size = next(iter(batch.values())).shape[0]
 
@@ -65,17 +68,17 @@ def compute_accuracy(model, dataloader, device, target_var):
             pred_labels = T.cat([preds], axis=1)
             total_loss += MMD_loss(labels,pred_labels)
 
-            total_e += energy_distance(labels,pred_labels)
-            total_js += classifier_js_divergence(labels,pred_labels)
+            total_e += energy_distance(labels.cpu(),pred_labels.cpu())
+            total_js += classifier_js_divergence(labels.cpu(),pred_labels.cpu())
 
     print(f'\t\t energy-based: {1-(total_e/len(dataloader)):.4f}')
     print(f'\t\t js-divergence: {1-(total_js/len(dataloader)):.4f}')
     return 1-(total_loss/len(dataloader))
 
-def print_accuracy(var, trained_ncm, train_dataloader, test_dataloader):
-    train_acc = compute_accuracy(trained_ncm, train_dataloader, 'cpu', var)
+def print_accuracy(var, trained_ncm, train_dataloader, test_dataloader, **kwargs):
+    train_acc = compute_accuracy(trained_ncm, train_dataloader, var, label="train", **kwargs)
     print(f'Final train accuracy for {var}: {train_acc:.4f}')
 
-    test_acc = compute_accuracy(trained_ncm, test_dataloader, 'cpu', var)
+    test_acc = compute_accuracy(trained_ncm, test_dataloader, var, label="test", **kwargs)
     print(f'Final test accuracy  for {var}: {test_acc:.4f}')
 

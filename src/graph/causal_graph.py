@@ -169,8 +169,27 @@ class CausalGraph:
     
     def convert_set_to_sorted(self, C):
         return [v for v in self.v if v in C]
+    
+    def subgraph(self, V_sub, V_cut_back=None, V_cut_front=None):
+        assert V_sub.issubset(self.set_v)
 
-    def plot(self, scale=1):
+        if V_cut_back is None:
+            V_cut_back = set()
+        if V_cut_front is None:
+            V_cut_front = set()
+
+        assert V_cut_back.issubset(self.set_v)
+        assert V_cut_front.issubset(self.set_v)
+
+        new_de = [(V1, V2) for V1, V2 in self.de
+                  if V1 in V_sub and V2 in V_sub and V2 not in V_cut_back and V1 not in V_cut_front]
+        new_be = [(V1, V2) for V1, V2 in self.be
+                  if V1 in V_sub and V2 in V_sub and V1 not in V_cut_back and V2 not in V_cut_back]
+
+        return CausalGraph(V_sub, new_de, new_be)
+
+
+    def plot(self, scale=1, **kwargs):
         n = len(self.v)
         corners = []
         for i in range(n):
@@ -181,7 +200,7 @@ class CausalGraph:
         positions = {self.v[i]: corners[i] for i in range(n)}
 
         # return plot_causal_diagram(self, node_positions=positions)
-        dot_text = self.convert_to_dot(node_positions=positions)
+        dot_text = self.convert_to_dot(node_positions=positions, **kwargs)
         return Source(dot_text, engine="neato")
 
     def convert_to_dot(self, path_1=[], path_2=[], nodes=[], node_positions={}):

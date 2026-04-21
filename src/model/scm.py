@@ -4,7 +4,7 @@ import numpy as np
 import torch as T
 import torch.nn as nn
 
-from src.model import Distribution
+from .distribution import Distribution
 
 def log(x):
     return T.log(x + 1e-8)

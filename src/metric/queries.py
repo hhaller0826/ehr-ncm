@@ -1,6 +1,6 @@
 import torch as T
 
-from src.metric import CTFTerm
+from .counterfactual import CTFTerm
 
 def expand_do(val, n):
     """Kevin"""

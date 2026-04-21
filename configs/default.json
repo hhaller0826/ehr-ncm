@@ -1,27 +1,15 @@
 {
-    "demographics": ["age", "gender", "ethnicity"],
     "tables": {
         "diagnosis": [
             "sepsis", 
-            "diabetes",
-            "respiratory failure",
-            "renal failure",
-            "hypertension",
-            "pneumonia"
+            "diabetes"
         ],
         "treatment": [
-            "vancomycin",
             "piperacillin",
             "cefepime",
             "meropenem",
-            "insulin",
-            "ventilation",
-            "dialysis",
-            "diuretic",
-            "hypertension|ACE inhibitor",
-            "hypertension|angiotensin II receptor blocker (ARB)",
-            "azithromycin",
-            "amoxicillin"
+            "intravenous fluid",
+            "insulin"
         ],
         "vitalAperiodic": {
             "noninvasivemean": "mean"
@@ -32,45 +20,31 @@
             "respiration": "mean"
         }
     },
+    "rename_cols": {"noninvasivemean": "bp", "intravenous fluid": "intravenous_fluid"},
 
-    "causal_map": {
-        "diabetes": ["insulin", "hypertension", "pneumonia", "renal failure", "mortality"],
-        "insulin": ["hypertension", "pneumonia", "renal failure", "mortality"],
+    "column_bins": {
+        "age": {"bins":[0, 18, 40, 65, 150], "labels":["child", "young_adult", "middle_age", "senior"]},
+        "sao2": {"bins":[0, 90, 95, 100], "labels":["danger", "low", "healthy"]},
+        "heartrate": {"bins":[-1, 60, 100, 1000], "labels":["low", "healthy", "high"]},
+        "respiration": {"bins":[0, 12, 18, 25, 1000], "labels":["low", "healthy", "high", "danger"]},
+        "bp": {"bins":[-1, 60, 70, 100, 1000], "labels":["danger", "low", "healthy", "high"]}
+    },
 
-        "hypertension": [
-            "hypertension|ACE inhibitor",
-            "hypertension|angiotensin II receptor blocker (ARB)",
-            "renal failure", 
-            "respiratory failure",
-            "mortality"
-        ],
-        "hypertension|ACE inhibitor": ["renal failure", "respiratory failure", "mortality"],
-        "hypertension|angiotensin II receptor blocker (ARB)": ["renal failure", "respiratory failure", "mortality"],
+    "causal_dict": {
+        "diabetes": ["insulin", "sepsis", "mortality"],
+        "insulin": ["sepsis", "mortality"],
 
-        "pneumonia": [
-            "amoxicillin",
-            "sepsis",
-            "respiratory failure",
-            "renal failure",
-            "mortality"
-        ],
-        "amoxicillin": ["sepsis", "respiratory failure", "renal failure", "mortality"],
-        
         "sepsis": [
-            "vancomycin",
             "piperacillin",
-            "respiratory failure",
-            "renal failure",
+            "cefepime",
+            "meropenem",
+            "intravenous_fluid",
             "mortality"
         ],
-        "vancomycin": ["respiratory failure", "renal failure", "mortality"],
-        "piperacillin": ["respiratory failure", "renal failure", "mortality"],
-        
-        "respiratory failure": ["ventilation", "renal failure", "mortality"],
-        "ventilation": ["mortality"],
-
-        "renal failure": ["dialysis", "respiratory failure", "mortality"],
-        "dialysis": ["mortality"]
+        "piperacillin": ["mortality"],
+        "cefepime": ["mortality"],
+        "meropenem": ["mortality"],
+        "intravenous_fluid": ["mortality"]
     }
-        
+
 }

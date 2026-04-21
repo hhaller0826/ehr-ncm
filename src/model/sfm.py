@@ -2,8 +2,8 @@ import torch as T
 import torch.nn as nn
 import numpy as np
 
-from src.model import SCM, TwoLayerArchitecture
-from src.data import ProcessedData
+from .scm import SCM 
+from .ncm.mlp import TwoLayerArchitecture
 
 class SFM(SCM):
     def __init__(self, assignments, f, pu, scale, v_size={}, default_v_size=1, og_projection=None):

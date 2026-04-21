@@ -1,8 +1,9 @@
-torch
+graphviz
+itertools
 numpy
 pandas
-tqdm
-itertools
-sklearn
+pickle
 scipy
-graphviz
+sklearn
+torch
+tqdm

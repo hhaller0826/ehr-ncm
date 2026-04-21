@@ -13,7 +13,7 @@ class Distribution(nn.Module):
     def __iter__(self):
         return iter(self.u)
 
-    def sample(self, n=1, device='cpu'):
+    def sample(self, n=1, device=None):
         raise NotImplementedError()
 
     def forward(self, n=1):
