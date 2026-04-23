@@ -15,7 +15,7 @@ def train_ncm(model, dataloader, hyperparameters={}):
     model.train()
     ordered_v = model.v
 
-    optimizer = hyperparameters.get("optimizer", optim.Adam(model.parameters(), lr=lr))
+    optimizer = hyperparameters.get("optimizer", optim.AdamW(model.parameters(), lr=lr))
 
     for epoch in range(1, num_epochs+1):
         epoch_loss = 0.0
@@ -38,7 +38,7 @@ def train_ncm(model, dataloader, hyperparameters={}):
 
             optimizer.zero_grad()
             # MMD loss compares the probability distributions of the two matrices
-            loss = MMD_loss(data_matrix.float(),ncm_matrix,gamma=1)
+            loss = MMD_loss(data_matrix.float(), ncm_matrix, gamma=1)
             loss.backward()
             optimizer.step()
 
@@ -50,7 +50,7 @@ def train_ncm(model, dataloader, hyperparameters={}):
 
     return model
 
-def compute_accuracy(model, dataloader, target_var, device=DEVICE, label=""):
+def get_distribution_diffs(model, dataloader, target_var, device=DEVICE, label=""):
     model.eval()
     total_loss = 0
     total_e = 0
@@ -62,7 +62,7 @@ def compute_accuracy(model, dataloader, target_var, device=DEVICE, label=""):
             batch_size = next(iter(batch.values())).shape[0]
 
             preds=model(n=batch_size,select={target_var})[target_var]
-            labels = batch[target_var]
+            # labels = batch[target_var]
             
             labels = T.cat([batch[target_var]], axis=1)
             pred_labels = T.cat([preds], axis=1)
@@ -71,9 +71,15 @@ def compute_accuracy(model, dataloader, target_var, device=DEVICE, label=""):
             total_e += energy_distance(labels.cpu(),pred_labels.cpu())
             total_js += classifier_js_divergence(labels.cpu(),pred_labels.cpu())
 
-    print(f'\t\t energy-based: {1-(total_e/len(dataloader)):.4f}')
-    print(f'\t\t js-divergence: {1-(total_js/len(dataloader)):.4f}')
-    return 1-(total_loss/len(dataloader))
+    return total_e/len(dataloader), total_js/len(dataloader), total_loss/len(dataloader)
+
+
+def compute_accuracy(model, dataloader, target_var, device=DEVICE, label=""):
+    avg_e, avg_js, avg_loss = get_distribution_diffs(model, dataloader, target_var, device=device, label=label)
+
+    print(f'\t\t energy-based: {1-avg_e:.4f}')
+    print(f'\t\t js-divergence: {1-avg_js:.4f}')
+    return 1-avg_loss
 
 def print_accuracy(var, trained_ncm, train_dataloader, test_dataloader, **kwargs):
     train_acc = compute_accuracy(trained_ncm, train_dataloader, var, label="train", **kwargs)

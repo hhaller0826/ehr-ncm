@@ -5,6 +5,8 @@ import torch as T
 import torch.nn as nn
 
 from .distribution import Distribution
+from src.metric import CTF
+from src.helpers import *
 
 def log(x):
     return T.log(x + 1e-8)
@@ -69,3 +71,78 @@ class SCM(nn.Module):
                 return T.sum(-log(1 - input))
             else:
                 raise ValueError("Comparison to {} of type {} is not allowed.".format(val, type(val)))
+            
+    def compute_ctf(self, query: CTF, n=1000000, u=None, get_prob=True, evaluating=False):
+        if u is None:
+            u = self.pu.sample(n)
+            n_new = n
+        else:
+            n_new = len(u[next(iter(u))])
+
+        for term in query.cond_term_set:
+            samples = self(n=None, u=u, do={
+                k: expand_do(v, n_new) for (k, v) in term.do_vals.items()
+            }, select=term.vars, evaluating=True)
+
+            cond_match = T.ones(n_new, dtype=T.bool)
+            for (k, v) in term.var_vals.items():
+                cond_match *= check_equal(samples[k], v)
+
+            u = {k: v[cond_match] for (k, v) in u.items()}
+            n_new = T.sum(cond_match.long()).item()
+
+        if n_new <= 0:
+            if evaluating:
+                return float('nan')
+            else:
+                return T.tensor([float('nan')]).to(self.device_param)
+
+        if evaluating:
+            match = T.ones(n_new, dtype=T.bool, requires_grad=False)
+            out_samples = dict()
+            for term in query.term_set:
+                expanded_do_terms = dict()
+                for (k, v) in term.do_vals.items():
+                    if k == "nested":
+                        expanded_do_terms.update(self.compute_ctf(v, u=u, get_prob=False, evaluating=evaluating))
+                    else:
+                        expanded_do_terms[k] = expand_do(v, n_new)
+                q_samples = self(n=None, u=u, do=expanded_do_terms, select=term.vars, evaluating=evaluating)
+
+                if get_prob:
+                    for (k, v) in term.var_vals.items():
+                        match *= check_equal(q_samples[k], v)
+                else:
+                    out_samples.update(q_samples)
+
+            if get_prob:
+                return (T.sum(match.long()) / match.shape[0]).item()
+            else:
+                return out_samples
+        
+        else:
+            loss = 0
+            loss_count = 0
+            out_samples = dict()
+            for term in query.term_set:
+                expanded_do_terms = dict()
+                for (k, v) in term.do_vals.items():
+                    if k == "nested":
+                        expanded_do_terms.update(self.compute_ctf(v, u=u, get_prob=False, evaluating=evaluating))
+                    else:
+                        expanded_do_terms[k] = expand_do(v, n_new)
+
+                q_samples = self(n=None, u=u, do=expanded_do_terms, select=term.vars, evaluating=evaluating)
+
+                if get_prob:
+                    for (k, v) in term.var_vals.items():
+                        loss += self.query_loss(q_samples[k], v)
+                        loss_count += 1
+                else:
+                    out_samples.update(q_samples)
+
+            if get_prob:
+                return loss / (n_new * loss_count)
+            else:
+                return out_samples
+

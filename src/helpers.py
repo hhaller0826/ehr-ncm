@@ -30,3 +30,17 @@ def get_hospitals_with(tables='all'):
     hospital_map = load_json("src/data/hospitals_with_data.json")
     hospitals = [set(hospital_map.get(t, [])) for t in tables]
     return list(set.intersection(*hospitals))
+
+def expand_do(val, n):
+    """Kevin"""
+    if torch.is_tensor(val):
+        return torch.tile(val, (n, 1))
+    else:
+        return torch.unsqueeze(torch.ones(n) * val, 1)
+    
+def check_equal(input, val):
+    """Kevin"""
+    if torch.is_tensor(val):
+        return torch.all(torch.eq(input, torch.tile(val, (input.shape[0], 1))), dim=1).bool()
+    else:
+        return torch.squeeze(input == val)

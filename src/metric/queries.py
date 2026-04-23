@@ -1,26 +1,13 @@
 import torch as T
 
 from .counterfactual import CTFTerm
-
-def expand_do(val, n):
-    """Kevin"""
-    if T.is_tensor(val):
-        return T.tile(val, (n, 1))
-    else:
-        return T.unsqueeze(T.ones(n) * val, 1)
+from src.helpers import *
     
 def expanded_dos(vals,n):
     do_dict = {}
     for k in vals:
         do_dict[k] = expand_do(vals[k],n)
     return do_dict
-
-def check_equal(input, val):
-    """Kevin"""
-    if T.is_tensor(val):
-        return T.all(T.eq(input, T.tile(val, (input.shape[0], 1))), dim=1).bool()
-    else:
-        return T.squeeze(input == val)
     
 def tensor_prob_dist(t):
     """Returns the probability distribution of a 1D tensor with discrete values."""

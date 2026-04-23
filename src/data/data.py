@@ -54,10 +54,12 @@ class ProcessedData:
         self._assignments = new_assignments
         self.columns = sum(new_assignments.values(), [])
 
+    def __getitem__(self, col): return self.data[col]
+
     def train_test_hospital_split(self, train_hospitals=[], test_size=0.1, **kwargs):
         train_dict, test_dict = {}, {}
         for h, df in self.hosp_data.items():
-            if h in train_hospitals:
+            if train_hospitals=='all' or h in train_hospitals:
                 train_dict[h], test_dict[h] = train_test_split(df, test_size=test_size, **kwargs)
             else:
                 test_dict[h] = df 

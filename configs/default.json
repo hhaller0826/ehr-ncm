@@ -1,50 +1,76 @@
 {
-    "tables": {
-        "diagnosis": [
-            "sepsis", 
-            "diabetes"
-        ],
-        "treatment": [
-            "piperacillin",
-            "cefepime",
-            "meropenem",
-            "intravenous fluid",
-            "insulin"
-        ],
-        "vitalAperiodic": {
-            "noninvasivemean": "mean"
-        },
-        "vitalPeriodic": {
-            "sao2": "mean",
-            "heartrate": "mean",
-            "respiration": "mean"
-        }
+    "demographics": {
+        "age": "max", 
+        "gender": "first", 
+        "ethnicity": "first"
     },
+    "diagnosis": [
+        "sepsis", 
+        "diabetes",
+        "pneumonia",
+        "respiratory failure"
+    ],
+    "treatment": [
+        "intravenous fluid",
+        "insulin",
+        "ventilation",
+        "antibacterials"
+    ],
+    "vitalAperiodic": {
+        "noninvasivemean": "mean"
+    },
+    "vitalPeriodic": {
+        "sao2": "mean",
+        "heartrate": "mean",
+        "respiration": "mean"
+    },
+    
     "rename_cols": {"noninvasivemean": "bp", "intravenous fluid": "intravenous_fluid"},
-
     "column_bins": {
-        "age": {"bins":[0, 18, 40, 65, 150], "labels":["child", "young_adult", "middle_age", "senior"]},
-        "sao2": {"bins":[0, 90, 95, 100], "labels":["danger", "low", "healthy"]},
+        "age": {"bins":[-1, 60, 1000], "labels":["young", "old"]},
+        "sao2": {"bins":[-1, 95, 1000], "labels":["low", "healthy"]},
         "heartrate": {"bins":[-1, 60, 100, 1000], "labels":["low", "healthy", "high"]},
-        "respiration": {"bins":[0, 12, 18, 25, 1000], "labels":["low", "healthy", "high", "danger"]},
-        "bp": {"bins":[-1, 60, 70, 100, 1000], "labels":["danger", "low", "healthy", "high"]}
+        "respiration": {"bins":[0, 18, 1000], "labels":["healthy", "high"]},
+        "bp": {"bins":[-1, 70, 100, 1000], "labels":["low", "healthy", "high"]}
+    },
+
+    "treatment_map": {
+        "sepsis": ["ventilation", "intravenous fluid"],
+        "pneumonia": ["ventilation", "antibacterials"],
+        "diabetes": ["insulin"],
+        "respiratory failure": ["ventilation"]
+    },
+
+    "assignments": {
+        "ethnicity": ["ethnicity"],
+        "age": ["age"],
+        "gender": ["gender"],
+        "vitals": ["sao2", "heartrate", "respiration", "bp"],
+        "sepsis": ["sepsis"],
+        "sep_tr": ["ventilation", "intravenous_fluid"],
+        "mortality": ["mortality"]
     },
 
     "causal_dict": {
+        "ethnicity": ["vitals", "sepsis", "sep_tr", "mortality"],
+        "age": ["vitals", "sepsis", "sep_tr", "mortality"],
+        "gender": ["vitals", "sepsis", "sep_tr", "mortality"],
+        "vitals": ["sepsis", "sep_tr", "mortality"],
+
         "diabetes": ["insulin", "sepsis", "mortality"],
         "insulin": ["sepsis", "mortality"],
 
         "sepsis": [
-            "piperacillin",
-            "cefepime",
-            "meropenem",
+            "ventilation",
             "intravenous_fluid",
             "mortality"
         ],
-        "piperacillin": ["mortality"],
-        "cefepime": ["mortality"],
-        "meropenem": ["mortality"],
-        "intravenous_fluid": ["mortality"]
-    }
+        "intravenous_fluid": ["mortality"],
+
+        "mortality": []
+    },
+    "bidirected": [
+        ["ethnicity", "age", "gender"]
+    ]
 
 }

@@ -34,8 +34,11 @@ class eICUData:
     def parse_data(self, patient_df) -> DataFrame:
         # initialize with demographic information
         data = self._get_agg(patient_df, self.config.demographic_agg_dict())
-        data['gender'] = data['gender'].map(lambda x: x if x in ['Male', 'Female'] else 'Other/Unknown')
-        data['ethnicity'] = data['ethnicity'].fillna('Other/Unknown')
+        # data['gender'] = data['gender'].map(lambda x: x if x in ['Male', 'Female'] else 'Other/Unknown')
+        # data['ethnicity'] = data['ethnicity'].fillna('Other/Unknown')
+        data['gender'] = data['gender'].map(lambda x: x if x=='Female' else 'Male')
+        data['ethnicity'] = data['ethnicity'].map(lambda x: x if x=='Caucasian' else 'POC/Other')
+        data['age'] = pd.to_numeric(data['age'], errors='coerce').fillna(60)
 
         # append diagnoses and treatments to the dataframe
         if self.verbose: print("Getting diagnoses and treatments...")

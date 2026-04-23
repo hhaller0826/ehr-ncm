@@ -8,10 +8,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def process_eicu_data(eicu_dt: eICUData, config=None, graph=None, **kwargs):
     config = config or eicu_dt.config
-    data = eicu_dt.data.copy().fillna(0)
-    for col, col_bins in config.column_bins.items():
-        data[col] = pd.cut(data[col], **col_bins)
-    
+    data = to_bins(eicu_dt.data, config.column_bins)
     check_assignments(data, config.assignments, graph)
     return ProcessedData(
         data,
@@ -20,6 +17,13 @@ def process_eicu_data(eicu_dt: eICUData, config=None, graph=None, **kwargs):
         # discrete_vars = ['mortality'] + eicu_dt.diagnoses + eicu_dt.treatments,
         **kwargs
     )
+
+def to_bins(data, column_bins: dict):
+    data = data.copy()
+    data[column_bins.keys()] = data[column_bins.keys()].fillna(data.mean(numeric_only=True))
+    for col, col_bins in column_bins.items():
+        data[col] = pd.cut(data[col], **col_bins)
+    return data
 
 def check_assignments(data, assignments: dict, graph):
     """
