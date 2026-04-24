@@ -3,9 +3,6 @@ from tqdm import tqdm
 
 from src.helpers import *
 
-SID = 'patientunitstayid'
-PID = 'uniquepid'
-
 def preprocess_admissionDx(**kwargs) -> pd.DataFrame:
     """
     Process the admissionDx data.
@@ -42,7 +39,7 @@ def preprocess_patient(**kwargs) -> pd.DataFrame:
     patient['mortality'] = patient['unitdischargestatus'] == 'Expired'
     
     patient = patient[[SID, PID, 'hospitalid','gender', 'age',
-       'ethnicity', 'admissionheight', 'admissionweight', 'mortality']]
+       'ethnicity', 'admissionheight', 'admissionweight', 'unitstaytype', 'mortality']]
     return patient.reset_index(drop=True)
 
 def preprocess_diagnoses(additional_diagnoses=[], **kwargs) -> pd.DataFrame:
@@ -59,6 +56,7 @@ def preprocess_diagnoses(additional_diagnoses=[], **kwargs) -> pd.DataFrame:
         "pneumonia": df['diagnosisstring'].str.contains('pneumonia'),
         "bronchitis": df['diagnosisstring'].str.contains('bronchitis'),
         "diabetes": df[3].isin(["Type II", "Type I"]),
+        "respiratory failure": df['diagnosisstring'].str.contains('respiratory failure'),
         **{d: df['diagnosisstring'].str.contains(d) for d in additional_diagnoses}
     }
 
@@ -151,7 +149,7 @@ def preprocess(table_filter = None, stay_filter=None, **kwargs) -> pd.DataFrame:
             df[df[SID].isin(stays)]
             .set_index(SID)
         )
-    return pd.concat(all_dfs, axis=1).reset_index(drop=True)
+    return pd.concat(all_dfs, axis=1).reset_index()
 
 def get_preprocessed(path):
     if path.split('.')[-1] != "csv":

@@ -72,7 +72,7 @@ class SCM(nn.Module):
             else:
                 raise ValueError("Comparison to {} of type {} is not allowed.".format(val, type(val)))
             
-    def compute_ctf(self, query: CTF, n=1000000, u=None, get_prob=True, evaluating=False):
+    def compute_ctf(self, query: CTF, n=1_000_000, u=None, get_prob=True, evaluating=False):
         if u is None:
             u = self.pu.sample(n)
             n_new = n

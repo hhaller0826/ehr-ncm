@@ -2,6 +2,8 @@ import json
 import torch
 import pandas as pd
 
+SID = 'patientunitstayid'
+PID = 'uniquepid'
 DEVICE = torch.device("mps" if torch.mps.is_available() else "cpu")
 
 def get_df(filename, **kwargs):

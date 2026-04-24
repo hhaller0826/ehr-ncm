@@ -3,6 +3,14 @@ import numpy as np
 from scipy.spatial.distance import cdist
 from sklearn.linear_model import LogisticRegression
 
+from sklearn.metrics.pairwise import rbf_kernel
+
+# def compute_mmd(x, y, gamma=1.0):
+#     Kxx = rbf_kernel(x, x, gamma=gamma)
+#     Kyy = rbf_kernel(y, y, gamma=gamma)
+#     Kxy = rbf_kernel(x, y, gamma=gamma)
+#     return Kxx.mean() + Kyy.mean() - 2 * Kxy.mean()
+
 # Credit: Kevin
 def MMD_loss(D, D_hat, gamma=1):
     """
